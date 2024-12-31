@@ -1,4 +1,5 @@
 # Minimalistic OpenGL Rust Library
+![Rust Workflow](https://github.com/steschu77/minigl-rs/actions/workflows/rust.yml/badge.svg)
 
 ## Project Goals
 
