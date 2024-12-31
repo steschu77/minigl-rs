@@ -13,7 +13,9 @@ This comes with the drawback of limited functionality and features. If you requi
 
 ## Features
 
-* Windows support tbd.
+* Windows support
+  * Window creation and access to the OpenGL context and OpenGL functions
+  * Depends only on [windows-rs](https://crates.io/crates/windows)
 * Linux support tbd.
 * MacOS support tbd.
 

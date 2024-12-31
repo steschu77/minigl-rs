@@ -227,6 +227,7 @@ unsafe fn create_framebuffer(gl: &gl::OpenGLFunctions) -> (gl::GLuint, gl::GLuin
 // Default impl for OpenGLContext without OS specific code.
 // This will cause an OpenGLLoadError panic when used.
 // This is useful for starting development on a new platform.
+#[cfg(not(target_os = "windows"))]
 mod none {
     use super::*;
     use minigl::none::*;
@@ -244,6 +245,65 @@ mod none {
     }
 }
 
+#[cfg(target_os = "windows")]
+mod win32 {
+
+    use minigl::win32::{window::*, *};
+    use windows::Win32::{Foundation::*, Graphics::Gdi::*, UI::WindowsAndMessaging::*};
+
+    struct WindowProcParams {}
+
+    struct WindowProcData {
+        win32: Win32GLContext,
+        triangle: super::Triangle,
+    }
+
+    impl WindowProcTrait for WindowProcData {
+        type Params = WindowProcParams;
+
+        fn create(hwnd: HWND, _params: &WindowProcParams) -> Self {
+            let win32 = Win32GLContext::from_hwnd(hwnd).unwrap();
+            let gl = win32.load().unwrap();
+            let triangle = super::Triangle::new(gl);
+            Self { win32, triangle }
+        }
+
+        fn on_destroy(&mut self) -> LRESULT {
+            unsafe { PostQuitMessage(0) };
+            LRESULT(0)
+        }
+
+        fn on_size(&mut self, cx: i32, cy: i32) -> LRESULT {
+            self.triangle.resize(cx, cy);
+            LRESULT(0)
+        }
+
+        fn on_paint(&mut self, _hdc: HDC, _ps: &PAINTSTRUCT) {
+            self.triangle.render();
+            self.win32.swap_buffers();
+        }
+    }
+
+    pub fn main() {
+        let hwnd = WindowProc::<WindowProcData>::create(
+            "OpenGL Triangle",
+            "OpenGLWindow",
+            WS_POPUP | WS_VISIBLE,
+            &WindowProcParams {},
+        );
+
+        if hwnd.is_ok() {
+            run_message_loop();
+        }
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
 pub fn main() {
     none::main();
+}
+
+#[cfg(target_os = "windows")]
+pub fn main() {
+    win32::main();
 }
