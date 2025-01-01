@@ -228,6 +228,7 @@ unsafe fn create_framebuffer(gl: &gl::OpenGLFunctions) -> (gl::GLuint, gl::GLuin
 // This will cause an OpenGLLoadError panic when used.
 // This is useful for starting development on a new platform.
 #[cfg(not(target_os = "windows"))]
+#[cfg(not(target_os = "linux"))]
 mod none {
     use super::*;
     use minigl::none::*;
@@ -298,7 +299,47 @@ mod win32 {
     }
 }
 
+#[cfg(target_os = "linux")]
+mod linux {
+    use super::*;
+    use minigl::linux::*;
+
+    pub fn main() {
+        let display = unsafe { x11::xlib::XOpenDisplay(std::ptr::null()) };
+        let screen = unsafe { x11::xlib::XDefaultScreen(display) };
+        let root = unsafe { x11::xlib::XRootWindow(display, screen) };
+
+        let win = unsafe { x11::xlib::XCreateSimpleWindow(display, root, 0, 0, 800, 600, 0, 0, 0) };
+
+        unsafe {
+            x11::xlib::XSelectInput(display, win, x11::xlib::ExposureMask | x11::xlib::KeyPressMask);
+            x11::xlib::XMapWindow(display, win);
+        }
+
+        let context = unsafe { LinuxGLContext::from_window(display, screen, win).unwrap() };
+        let gl = context.load().unwrap();
+        let triangle = Triangle::new(gl);
+        triangle.resize(800, 600);
+
+        loop {
+            unsafe {
+                let mut event: x11::xlib::XEvent = std::mem::zeroed();
+                x11::xlib::XNextEvent(display, &mut event);
+                match event.type_ {
+                    x11::xlib::Expose => {
+                        triangle.render();
+                        context.swap_buffers();
+                    }
+                    x11::xlib::KeyPress => break,
+                    _ => (),
+                }
+            }
+        }
+    }
+}
+
 #[cfg(not(target_os = "windows"))]
+#[cfg(not(target_os = "linux"))]
 pub fn main() {
     none::main();
 }
@@ -306,4 +347,9 @@ pub fn main() {
 #[cfg(target_os = "windows")]
 pub fn main() {
     win32::main();
+}
+
+#[cfg(target_os = "linux")]
+pub fn main() {
+    linux::main();
 }

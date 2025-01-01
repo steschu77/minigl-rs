@@ -16,7 +16,9 @@ This comes with the drawback of limited functionality and features. If you requi
 * Windows support
   * Window creation and access to the OpenGL context and OpenGL functions
   * Depends only on [windows-rs](https://crates.io/crates/windows)
-* Linux support tbd.
+* Linux support
+  * Window creation and access to the OpenGL context and OpenGL functions
+  * Depends only on [x11](https://crates.io/crates/x11)
 * MacOS support tbd.
 
 ## Usage
