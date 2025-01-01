@@ -103,24 +103,6 @@ pub type FnTexParameterfv = unsafe fn(GLenum, GLenum, *const GLfloat);
 pub type FnTexParameteri = unsafe fn(GLenum, GLenum, GLint);
 pub type FnTexParameteriv = unsafe fn(GLenum, GLenum, *const GLint);
 
-pub struct OpenGLFunctions1_1 {
-    pub fnViewport: FnViewport,
-    pub fnClearColor: FnClearColor,
-    pub fnClear: FnClear,
-    pub fnEnable: FnEnable,
-    pub fnDisable: FnDisable,
-    pub fnPointSize: FnPointSize,
-    pub fnLineWidth: FnLineWidth,
-    pub fnGenTextures: FnGenTextures,
-    pub fnBindTexture: FnBindTexture,
-    pub fnTexImage1D: FnTexImage1D,
-    pub fnTexImage2D: FnTexImage2D,
-    pub fnTexParameterf: FnTexParameterf,
-    pub fnTexParameterfv: FnTexParameterfv,
-    pub fnTexParameteri: FnTexParameteri,
-    pub fnTexParameteriv: FnTexParameteriv,
-}
-
 pub type FnActiveTexture = unsafe extern "system" fn(GLenum);
 
 pub type FnCreateProgram = unsafe extern "system" fn() -> GLuint;
@@ -302,29 +284,26 @@ macro_rules! impl_gl_fn {
 }
 
 impl OpenGLFunctions {
-    pub fn load<F>(
-        gl1_1: OpenGLFunctions1_1,
-        load_fn: F,
-    ) -> std::result::Result<Self, Box<dyn std::error::Error>>
+    pub fn load<F>(load_fn: F) -> std::result::Result<Self, Box<dyn std::error::Error>>
     where
         F: Fn(&'static str) -> Option<FnOpenGL>,
     {
         Ok(Self {
-            fnViewport: gl1_1.fnViewport,
-            fnClearColor: gl1_1.fnClearColor,
-            fnClear: gl1_1.fnClear,
-            fnEnable: gl1_1.fnEnable,
-            fnDisable: gl1_1.fnDisable,
-            fnPointSize: gl1_1.fnPointSize,
-            fnLineWidth: gl1_1.fnLineWidth,
-            fnGenTextures: gl1_1.fnGenTextures,
-            fnBindTexture: gl1_1.fnBindTexture,
-            fnTexImage1D: gl1_1.fnTexImage1D,
-            fnTexImage2D: gl1_1.fnTexImage2D,
-            fnTexParameterf: gl1_1.fnTexParameterf,
-            fnTexParameterfv: gl1_1.fnTexParameterfv,
-            fnTexParameteri: gl1_1.fnTexParameteri,
-            fnTexParameteriv: gl1_1.fnTexParameteriv,
+            fnViewport: load_gl_fn!(load_fn, "glViewport\0" => FnViewport)?,
+            fnClearColor: load_gl_fn!(load_fn, "glClearColor\0" => FnClearColor)?,
+            fnClear: load_gl_fn!(load_fn, "glClear\0" => FnClear)?,
+            fnEnable: load_gl_fn!(load_fn, "glEnable\0" => FnEnable)?,
+            fnDisable: load_gl_fn!(load_fn, "glDisable\0" => FnDisable)?,
+            fnPointSize: load_gl_fn!(load_fn, "glPointSize\0" => FnPointSize)?,
+            fnLineWidth: load_gl_fn!(load_fn, "glLineWidth\0" => FnLineWidth)?,
+            fnGenTextures: load_gl_fn!(load_fn, "glGenTextures\0" => FnGenTextures)?,
+            fnBindTexture: load_gl_fn!(load_fn, "glBindTexture\0" => FnBindTexture)?,
+            fnTexImage1D: load_gl_fn!(load_fn, "glTexImage1D\0" => FnTexImage1D)?,
+            fnTexImage2D: load_gl_fn!(load_fn, "glTexImage2D\0" => FnTexImage2D)?,
+            fnTexParameterf: load_gl_fn!(load_fn, "glTexParameterf\0" => FnTexParameterf)?,
+            fnTexParameterfv: load_gl_fn!(load_fn, "glTexParameterfv\0" => FnTexParameterfv)?,
+            fnTexParameteri: load_gl_fn!(load_fn, "glTexParameteri\0" => FnTexParameteri)?,
+            fnTexParameteriv: load_gl_fn!(load_fn, "glTexParameteriv\0" => FnTexParameteriv)?,
 
             fnActiveTexture: load_gl_fn!(load_fn, "glActiveTexture\0" => FnActiveTexture)?,
 
