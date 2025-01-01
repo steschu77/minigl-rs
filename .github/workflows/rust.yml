@@ -19,7 +19,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    # Cache Cargo registry
     - name: Cache Cargo registry
       uses: actions/cache@v3
       with:
@@ -28,7 +27,6 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-cargo-registry-
 
-    # Cache Cargo build directory
     - name: Cache Cargo build directory
       uses: actions/cache@v3
       with:
@@ -37,9 +35,8 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-cargo-target-
 
-    - name: Build
+    - name: Build the library
       run: cargo build --verbose
 
-    - name: Run the example
-      run: cargo run --example triangle
-      continue-on-error: true
+    - name: Build the example
+      run: cargo build --example triangle
