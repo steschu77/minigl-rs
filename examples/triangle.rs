@@ -55,6 +55,8 @@ struct Triangle {
 
 impl Triangle {
     fn new(gl: gl::OpenGLFunctions) -> Self {
+        print_opengl_info(&gl);
+
         let color_vao = create_color_vao(&gl);
         let texture_vao = create_texture_vao(&gl);
         let color_program = create_program(&gl, VS_COLOR, FS_COLOR);
@@ -112,12 +114,47 @@ impl Triangle {
     }
 }
 
+fn print_opengl_info(gl: &gl::OpenGLFunctions) {
+    unsafe {
+        let version = std::ffi::CStr::from_ptr(gl.GetString(gl::VERSION) as *const _)
+            .to_str()
+            .unwrap();
+        let vendor = std::ffi::CStr::from_ptr(gl.GetString(gl::VENDOR) as *const _)
+            .to_str()
+            .unwrap();
+        let renderer = std::ffi::CStr::from_ptr(gl.GetString(gl::RENDERER) as *const _)
+            .to_str()
+            .unwrap();
+
+        println!("OpenGL Version: {}", version);
+        println!("Vendor: {}", vendor);
+        println!("Renderer: {}", renderer);
+    }
+}
+
 fn create_shader(gl: &gl::OpenGLFunctions, shader_type: gl::GLenum, source: &str) -> gl::GLuint {
     unsafe {
         let source = source.to_string() + "\0";
         let shader = gl.CreateShader(shader_type);
         gl.ShaderSource(shader, 1, &source.as_ptr(), std::ptr::null());
         gl.CompileShader(shader);
+
+        let mut is_compiled: gl::GLint = 0;
+        gl.GetShaderiv(shader, gl::COMPILE_STATUS, &mut is_compiled);
+        if is_compiled == 0 {
+            let mut log_length: gl::GLint = 0;
+            gl.GetShaderiv(shader, gl::INFO_LOG_LENGTH, &mut log_length);
+            let mut log = vec![0; log_length as usize];
+            gl.GetShaderInfoLog(
+                shader,
+                log_length,
+                std::ptr::null_mut(),
+                log.as_mut_ptr() as *mut _,
+            );
+            let log_str = String::from_utf8_lossy(&log);
+            panic!("Shader compilation failed: {}", log_str);
+        }
+
         shader
     }
 }
