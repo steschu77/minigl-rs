@@ -1,7 +1,7 @@
 [package]
 name = "minigl"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [target.'cfg(windows)'.dependencies]
 windows = { version = "0.58", features = ["Win32_System", "Win32_System_LibraryLoader", "Win32_Graphics", "Win32_Graphics_Gdi", "Win32_Graphics_OpenGL", "Win32_UI_WindowsAndMessaging"] }

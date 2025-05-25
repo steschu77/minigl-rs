@@ -55,11 +55,11 @@ struct Triangle {
 
 impl Triangle {
     fn new(gl: gl::OpenGLFunctions) -> Self {
-        let color_vao = unsafe { create_color_vao(&gl) };
-        let texture_vao = unsafe { create_texture_vao(&gl) };
-        let color_program = unsafe { create_program(&gl, VS_COLOR, FS_COLOR) };
-        let texture_program = unsafe { create_program(&gl, VS_TEXTURE, FS_TEXTURE) };
-        let (fbo, texture) = unsafe { create_framebuffer(&gl) };
+        let color_vao = create_color_vao(&gl);
+        let texture_vao = create_texture_vao(&gl);
+        let color_program = create_program(&gl, VS_COLOR, FS_COLOR);
+        let texture_program = create_program(&gl, VS_TEXTURE, FS_TEXTURE);
+        let (fbo, texture) = create_framebuffer(&gl);
 
         Self {
             gl,
@@ -112,116 +112,119 @@ impl Triangle {
     }
 }
 
-unsafe fn create_shader(
-    gl: &gl::OpenGLFunctions,
-    shader_type: gl::GLenum,
-    source: &str,
-) -> gl::GLuint {
-    let source = source.to_string() + "\0";
-    let shader = gl.CreateShader(shader_type);
-    gl.ShaderSource(shader, 1, &source.as_ptr(), std::ptr::null());
-    gl.CompileShader(shader);
-    shader
-}
-
-unsafe fn create_program(gl: &gl::OpenGLFunctions, vs: &str, fs: &str) -> gl::GLuint {
-    let vs = create_shader(gl, gl::VERTEX_SHADER, vs);
-    let fs = create_shader(gl, gl::FRAGMENT_SHADER, fs);
-
-    let program = gl.CreateProgram();
-    gl.AttachShader(program, vs);
-    gl.AttachShader(program, fs);
-    gl.LinkProgram(program);
-    gl.DeleteShader(vs);
-    gl.DeleteShader(fs);
-    program
-}
-
-unsafe fn create_vbo(
-    gl: &gl::OpenGLFunctions,
-    idx: gl::GLuint,
-    size: gl::GLint,
-    data: Vec<gl::GLfloat>,
-) {
-    let mut vbo = 0;
-    gl.GenBuffers(1, &mut vbo);
-    gl.BindBuffer(gl::ARRAY_BUFFER, vbo);
-    gl.BufferData(
-        gl::ARRAY_BUFFER,
-        data.len() * std::mem::size_of::<gl::GLfloat>(),
-        data.as_ptr() as *const _,
-        gl::STATIC_DRAW,
-    );
-
-    gl.EnableVertexAttribArray(idx);
-    gl.VertexAttribPointer(idx, size, gl::FLOAT, gl::FALSE, 0, std::ptr::null());
-}
-
-unsafe fn create_color_vao(gl: &gl::OpenGLFunctions) -> gl::GLuint {
-    let mut vao = 0;
-    gl.GenVertexArrays(1, &mut vao);
-    gl.BindVertexArray(vao);
-
-    let verts = vec![0.0, 0.5, 0.5, -0.5, -0.5, -0.5];
-    let colors = vec![1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
-    create_vbo(gl, 0, 2, verts);
-    create_vbo(gl, 1, 3, colors);
-
-    vao
-}
-
-unsafe fn create_texture_vao(gl: &gl::OpenGLFunctions) -> gl::GLuint {
-    let mut vao = 0;
-    gl.GenVertexArrays(1, &mut vao);
-    gl.BindVertexArray(vao);
-
-    let verts = vec![-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0];
-    let texcoords = vec![0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0];
-    create_vbo(gl, 0, 2, verts);
-    create_vbo(gl, 1, 2, texcoords);
-
-    vao
-}
-
-unsafe fn create_framebuffer(gl: &gl::OpenGLFunctions) -> (gl::GLuint, gl::GLuint) {
-    let mut fbo = 0;
-
-    gl.GenFramebuffers(1, &mut fbo);
-    gl.BindFramebuffer(gl::FRAMEBUFFER, fbo);
-
-    let mut texture = 0;
-    gl.GenTextures(1, &mut texture);
-    gl.BindTexture(gl::TEXTURE_2D, texture);
-    gl.TexImage2D(
-        gl::TEXTURE_2D,
-        0,
-        gl::RGBA8 as i32,
-        800,
-        600,
-        0,
-        gl::RGB,
-        gl::UNSIGNED_BYTE,
-        std::ptr::null(),
-    );
-    gl.TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
-    gl.TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
-
-    gl.FramebufferTexture2D(
-        gl::FRAMEBUFFER,
-        gl::COLOR_ATTACHMENT,
-        gl::TEXTURE_2D,
-        texture,
-        0,
-    );
-
-    gl.DrawBuffers(1, [gl::COLOR_ATTACHMENT].as_ptr());
-
-    let status = gl.CheckFramebufferStatus(gl::FRAMEBUFFER);
-    if status != gl::FRAMEBUFFER_COMPLETE {
-        panic!("Framebuffer is not complete");
+fn create_shader(gl: &gl::OpenGLFunctions, shader_type: gl::GLenum, source: &str) -> gl::GLuint {
+    unsafe {
+        let source = source.to_string() + "\0";
+        let shader = gl.CreateShader(shader_type);
+        gl.ShaderSource(shader, 1, &source.as_ptr(), std::ptr::null());
+        gl.CompileShader(shader);
+        shader
     }
+}
 
-    (fbo, texture)
+fn create_program(gl: &gl::OpenGLFunctions, vs: &str, fs: &str) -> gl::GLuint {
+    unsafe {
+        let vs = create_shader(gl, gl::VERTEX_SHADER, vs);
+        let fs = create_shader(gl, gl::FRAGMENT_SHADER, fs);
+
+        let program = gl.CreateProgram();
+        gl.AttachShader(program, vs);
+        gl.AttachShader(program, fs);
+        gl.LinkProgram(program);
+        gl.DeleteShader(vs);
+        gl.DeleteShader(fs);
+        program
+    }
+}
+
+fn create_vbo(gl: &gl::OpenGLFunctions, idx: gl::GLuint, size: gl::GLint, data: Vec<gl::GLfloat>) {
+    unsafe {
+        let mut vbo = 0;
+        gl.GenBuffers(1, &mut vbo);
+        gl.BindBuffer(gl::ARRAY_BUFFER, vbo);
+        gl.BufferData(
+            gl::ARRAY_BUFFER,
+            data.len() * std::mem::size_of::<gl::GLfloat>(),
+            data.as_ptr() as *const _,
+            gl::STATIC_DRAW,
+        );
+
+        gl.EnableVertexAttribArray(idx);
+        gl.VertexAttribPointer(idx, size, gl::FLOAT, gl::FALSE, 0, std::ptr::null());
+    }
+}
+
+fn create_color_vao(gl: &gl::OpenGLFunctions) -> gl::GLuint {
+    unsafe {
+        let mut vao = 0;
+        gl.GenVertexArrays(1, &mut vao);
+        gl.BindVertexArray(vao);
+
+        let verts = vec![0.0, 0.5, 0.5, -0.5, -0.5, -0.5];
+        let colors = vec![1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
+        create_vbo(gl, 0, 2, verts);
+        create_vbo(gl, 1, 3, colors);
+
+        vao
+    }
+}
+
+fn create_texture_vao(gl: &gl::OpenGLFunctions) -> gl::GLuint {
+    unsafe {
+        let mut vao = 0;
+        gl.GenVertexArrays(1, &mut vao);
+        gl.BindVertexArray(vao);
+
+        let verts = vec![-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0];
+        let texcoords = vec![0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0];
+        create_vbo(gl, 0, 2, verts);
+        create_vbo(gl, 1, 2, texcoords);
+
+        vao
+    }
+}
+
+fn create_framebuffer(gl: &gl::OpenGLFunctions) -> (gl::GLuint, gl::GLuint) {
+    unsafe {
+        let mut fbo = 0;
+
+        gl.GenFramebuffers(1, &mut fbo);
+        gl.BindFramebuffer(gl::FRAMEBUFFER, fbo);
+
+        let mut texture = 0;
+        gl.GenTextures(1, &mut texture);
+        gl.BindTexture(gl::TEXTURE_2D, texture);
+        gl.TexImage2D(
+            gl::TEXTURE_2D,
+            0,
+            gl::RGBA8 as i32,
+            800,
+            600,
+            0,
+            gl::RGB,
+            gl::UNSIGNED_BYTE,
+            std::ptr::null(),
+        );
+        gl.TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
+        gl.TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
+
+        gl.FramebufferTexture2D(
+            gl::FRAMEBUFFER,
+            gl::COLOR_ATTACHMENT,
+            gl::TEXTURE_2D,
+            texture,
+            0,
+        );
+
+        gl.DrawBuffers(1, [gl::COLOR_ATTACHMENT].as_ptr());
+
+        let status = gl.CheckFramebufferStatus(gl::FRAMEBUFFER);
+        if status != gl::FRAMEBUFFER_COMPLETE {
+            panic!("Framebuffer is not complete");
+        }
+
+        (fbo, texture)
+    }
 }
 
 // Default impl for OpenGLContext without OS specific code.
@@ -312,7 +315,11 @@ mod linux {
         let win = unsafe { x11::xlib::XCreateSimpleWindow(display, root, 0, 0, 800, 600, 0, 0, 0) };
 
         unsafe {
-            x11::xlib::XSelectInput(display, win, x11::xlib::ExposureMask | x11::xlib::KeyPressMask);
+            x11::xlib::XSelectInput(
+                display,
+                win,
+                x11::xlib::ExposureMask | x11::xlib::KeyPressMask,
+            );
             x11::xlib::XMapWindow(display, win);
         }
 
