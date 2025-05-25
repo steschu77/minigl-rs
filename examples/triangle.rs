@@ -1,7 +1,7 @@
 use minigl::opengl as gl;
 
 const VS_COLOR: &str = r#"
-#version 330 core
+#version 300 es
 layout (location = 0) in vec2 aPosition;
 layout (location = 1) in vec3 aColor;
 out vec3 vertexColor;
@@ -11,25 +11,26 @@ void main() {
 }"#;
 
 const FS_COLOR: &str = r#"
-#version 330 core
-in vec3 vertexColor;
-out vec4 FragColor;
+#version 300 es
+in mediump vec3 vertexColor;
+out mediump vec4 FragColor;
 void main() {
     FragColor = vec4(vertexColor, 1.0);
 }"#;
 
 const VS_TEXTURE: &str = r#"
-#version 330 core
+#version 300 es
 layout (location = 0) in vec2 aPosition;
 layout (location = 1) in vec2 aTexCoord;
-out vec2 TexCoord;
+out mediump vec2 TexCoord;
 void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
     TexCoord = aTexCoord;
 }"#;
 
 const FS_TEXTURE: &str = r#"
-#version 330 core
+#version 300 es
+precision mediump float;
 in vec2 TexCoord;
 out vec4 FragColor;
 uniform sampler2D texture1;
@@ -59,8 +60,8 @@ impl Triangle {
 
         let color_vao = create_color_vao(&gl);
         let texture_vao = create_texture_vao(&gl);
-        let color_program = create_program(&gl, VS_COLOR, FS_COLOR);
-        let texture_program = create_program(&gl, VS_TEXTURE, FS_TEXTURE);
+        let color_program = create_program(&gl, "color", VS_COLOR, FS_COLOR);
+        let texture_program = create_program(&gl, "texture", VS_TEXTURE, FS_TEXTURE);
         let (fbo, texture) = create_framebuffer(&gl);
 
         Self {
@@ -132,7 +133,7 @@ fn print_opengl_info(gl: &gl::OpenGLFunctions) {
     }
 }
 
-fn create_shader(gl: &gl::OpenGLFunctions, shader_type: gl::GLenum, source: &str) -> gl::GLuint {
+fn create_shader(gl: &gl::OpenGLFunctions, shader_type: gl::GLenum, name: &str, source: &str) -> gl::GLuint {
     unsafe {
         let source = source.to_string() + "\0";
         let shader = gl.CreateShader(shader_type);
@@ -152,17 +153,17 @@ fn create_shader(gl: &gl::OpenGLFunctions, shader_type: gl::GLenum, source: &str
                 log.as_mut_ptr() as *mut _,
             );
             let log_str = String::from_utf8_lossy(&log);
-            panic!("Shader compilation failed: {}", log_str);
+            panic!("{name}: Shader compilation failed: {log_str}");
         }
 
         shader
     }
 }
 
-fn create_program(gl: &gl::OpenGLFunctions, vs: &str, fs: &str) -> gl::GLuint {
+fn create_program(gl: &gl::OpenGLFunctions, name: &str, vs: &str, fs: &str) -> gl::GLuint {
     unsafe {
-        let vs = create_shader(gl, gl::VERTEX_SHADER, vs);
-        let fs = create_shader(gl, gl::FRAGMENT_SHADER, fs);
+        let vs = create_shader(gl, gl::VERTEX_SHADER, format!("{name}/vertex").as_str(), vs);
+        let fs = create_shader(gl, gl::FRAGMENT_SHADER, format!("{name}/fragment").as_str(), fs);
 
         let program = gl.CreateProgram();
         gl.AttachShader(program, vs);
