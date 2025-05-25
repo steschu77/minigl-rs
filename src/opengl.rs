@@ -12,6 +12,7 @@ pub type GLushort = std::os::raw::c_ushort;
 pub type GLuint = std::os::raw::c_uint;
 pub type GLsizei = std::os::raw::c_int;
 pub type GLfloat = std::os::raw::c_float;
+pub type GLclampf = std::os::raw::c_float;
 pub type GLdouble = std::os::raw::c_double;
 pub type GLchar = std::os::raw::c_uchar;
 
@@ -44,7 +45,21 @@ pub const FLOAT: GLenum = 0x1406;
 pub const DOUBLE: GLenum = 0x140A;
 
 pub const RGB: GLenum = 0x1907;
+pub const RGBA: GLenum = 0x1908;
+
+pub const RGB5: GLenum = 0x8050;
+pub const RGB8: GLenum = 0x8051;
+pub const RGB10: GLenum = 0x8052;
+pub const RGB12: GLenum = 0x8053;
+pub const RGB16: GLenum = 0x8054;
+pub const RGBA2: GLenum = 0x8055;
+pub const RGBA4: GLenum = 0x8056;
+pub const RGB5_A1: GLenum = 0x8057;
 pub const RGBA8: GLenum = 0x8058;
+pub const RGB10_A2: GLenum = 0x8059;
+pub const RGBA12: GLenum = 0x805A;
+pub const RGBA16: GLenum = 0x805B;
+
 pub const R16F: GLenum = 0x822D;
 pub const RG16F: GLenum = 0x822F;
 pub const RGB16F: GLenum = 0x881B;
@@ -72,6 +87,18 @@ pub const CLAMP_TO_EDGE: GLenum = 0x812F;
 
 pub const TEXTURE0: GLenum = 0x84C0;
 
+pub const ZERO: GLenum = 0;
+pub const ONE: GLenum = 1;
+pub const SRC_COLOR: GLenum = 0x0300;
+pub const ONE_MINUS_SRC_COLOR: GLenum = 0x0301;
+pub const SRC_ALPHA: GLenum = 0x0302;
+pub const ONE_MINUS_SRC_ALPHA: GLenum = 0x0303;
+pub const DST_ALPHA: GLenum = 0x0304;
+pub const ONE_MINUS_DST_ALPHA: GLenum = 0x0305;
+pub const DST_COLOR: GLenum = 0x0306;
+pub const ONE_MINUS_DST_COLOR: GLenum = 0x0307;
+pub const SRC_ALPHA_SATURATE: GLenum = 0x0308;
+
 pub const ARRAY_BUFFER: GLenum = 0x8892;
 pub const STATIC_DRAW: GLenum = 0x88E4;
 pub const FRAGMENT_SHADER: GLenum = 0x8B30;
@@ -90,6 +117,8 @@ pub type FnClearColor = unsafe fn(GLfloat, GLfloat, GLfloat, GLfloat);
 pub type FnClear = unsafe fn(GLbitfield);
 pub type FnEnable = unsafe fn(GLenum);
 pub type FnDisable = unsafe fn(GLenum);
+pub type FnAlphaFunc = unsafe fn(GLenum, GLclampf);
+pub type FnBlendFunc = unsafe fn(GLenum, GLenum);
 pub type FnPointSize = unsafe fn(GLfloat);
 pub type FnLineWidth = unsafe fn(GLfloat);
 pub type FnGenTextures = unsafe fn(GLsizei, *mut GLuint);
@@ -169,6 +198,8 @@ pub struct OpenGLFunctions {
     fnClear: FnClear,
     fnEnable: FnEnable,
     fnDisable: FnDisable,
+    fnAlphaFunc: FnAlphaFunc,
+    fnBlendFunc: FnBlendFunc,
     fnPointSize: FnPointSize,
     fnLineWidth: FnLineWidth,
     fnGenTextures: FnGenTextures,
@@ -294,6 +325,8 @@ impl OpenGLFunctions {
             fnClear: load_gl_fn!(load_fn, "glClear\0" => FnClear)?,
             fnEnable: load_gl_fn!(load_fn, "glEnable\0" => FnEnable)?,
             fnDisable: load_gl_fn!(load_fn, "glDisable\0" => FnDisable)?,
+            fnAlphaFunc: load_gl_fn!(load_fn, "glAlphaFunc\0" => FnAlphaFunc)?,
+            fnBlendFunc: load_gl_fn!(load_fn, "glBlendFunc\0" => FnBlendFunc)?,
             fnPointSize: load_gl_fn!(load_fn, "glPointSize\0" => FnPointSize)?,
             fnLineWidth: load_gl_fn!(load_fn, "glLineWidth\0" => FnLineWidth)?,
             fnGenTextures: load_gl_fn!(load_fn, "glGenTextures\0" => FnGenTextures)?,
@@ -370,6 +403,8 @@ impl OpenGLFunctions {
     impl_gl_fn!(fnClear, Clear(mask: GLbitfield));
     impl_gl_fn!(fnEnable, Enable(cap: GLenum));
     impl_gl_fn!(fnDisable, Disable(cap: GLenum));
+    impl_gl_fn!(fnAlphaFunc, AlphaFunc(func: GLenum, ref_value: GLclampf));
+    impl_gl_fn!(fnBlendFunc, BlendFunc(src: GLenum, dst: GLenum));
     impl_gl_fn!(fnPointSize, PointSize(size: GLfloat));
     impl_gl_fn!(fnLineWidth, LineWidth(width: GLfloat));
     impl_gl_fn!(fnGenTextures, GenTextures(n: GLsizei, textures: *mut GLuint));
