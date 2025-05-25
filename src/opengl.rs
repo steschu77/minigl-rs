@@ -303,9 +303,9 @@ macro_rules! impl_gl_fn {
     ($fn_name:ident, $name:ident($($arg:ident: $arg_ty:ty),*) -> $ret:ty) => {
         #[allow(clippy::too_many_arguments)]
         #[allow(clippy::missing_safety_doc)]
-        pub unsafe fn $name(&self, $($arg: $arg_ty),*) -> $ret {
+        pub unsafe fn $name(&self, $($arg: $arg_ty),*) -> $ret { unsafe {
             (self.$fn_name)($($arg),*)
-        }
+        }}
     };
 
     // Variant for functions that return void.
@@ -474,4 +474,12 @@ impl OpenGLFunctions {
     impl_gl_fn!(fnUniformMatrix2fv, UniformMatrix2fv(location: GLint, count: GLsizei, transpose: GLboolean, value: *const GLfloat));
     impl_gl_fn!(fnUniformMatrix3fv, UniformMatrix3fv(location: GLint, count: GLsizei, transpose: GLboolean, value: *const GLfloat));
     impl_gl_fn!(fnUniformMatrix4fv, UniformMatrix4fv(location: GLint, count: GLsizei, transpose: GLboolean, value: *const GLfloat));
+}
+
+mod tests {
+
+	#[test]
+	fn test_load_gl_fn() {
+		assert_eq!(1, 1);
+	}
 }

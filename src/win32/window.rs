@@ -1,8 +1,8 @@
-use windows::core::*;
 use windows::Win32::{
     Foundation::*, Graphics::Gdi::*, System::LibraryLoader::GetModuleHandleW,
     UI::WindowsAndMessaging::*,
 };
+use windows::core::*;
 
 pub fn loword(dword: u32) -> i32 {
     (dword & 0xffff) as i16 as i32
@@ -78,30 +78,32 @@ impl<T: WindowProcTrait> WindowProc<T> {
         wparam: WPARAM,
         lparam: LPARAM,
     ) -> LRESULT {
-        if msg == WM_NCCREATE {
-            let cs = lparam.0 as *const CREATESTRUCTW;
-            let params = (*cs).lpCreateParams as *mut T::Params;
-            let create_data = Box::from_raw(params);
+        unsafe {
+            if msg == WM_NCCREATE {
+                let cs = lparam.0 as *const CREATESTRUCTW;
+                let params = (*cs).lpCreateParams as *mut T::Params;
+                let create_data = Box::from_raw(params);
 
-            let data = Box::new(T::create(hwnd, &create_data));
-            let window = Box::new(WindowProc { hwnd, data });
-            SetWindowLongPtrW(hwnd, GWLP_USERDATA, Box::into_raw(window) as isize);
-        }
-
-        let ptr = GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut WindowProc<T>;
-        if ptr.is_null() {
-            DefWindowProcW(hwnd, msg, wparam, lparam)
-        } else {
-            let result = ptr.as_mut().unwrap().handle_msg(msg, wparam, lparam);
-
-            if msg == WM_NCDESTROY {
-                // remove the object from the window and delete it
-                SetWindowLongPtrW(hwnd, GWLP_USERDATA, 0);
-
-                let window = Box::from_raw(ptr);
-                drop(window); // make it obivous that the window is being deleted
+                let data = Box::new(T::create(hwnd, &create_data));
+                let window = Box::new(WindowProc { hwnd, data });
+                SetWindowLongPtrW(hwnd, GWLP_USERDATA, Box::into_raw(window) as isize);
             }
-            result
+
+            let ptr = GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut WindowProc<T>;
+            if ptr.is_null() {
+                DefWindowProcW(hwnd, msg, wparam, lparam)
+            } else {
+                let result = ptr.as_mut().unwrap().handle_msg(msg, wparam, lparam);
+
+                if msg == WM_NCDESTROY {
+                    // remove the object from the window and delete it
+                    SetWindowLongPtrW(hwnd, GWLP_USERDATA, 0);
+
+                    let window = Box::from_raw(ptr);
+                    drop(window); // make it obivous that the window is being deleted
+                }
+                result
+            }
         }
     }
 
