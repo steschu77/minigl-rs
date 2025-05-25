@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_camel_case_types)]
 
 pub type GLenum = std::os::raw::c_uint;
 pub type GLboolean = std::os::raw::c_uchar;
@@ -7,9 +8,11 @@ pub type GLvoid = std::os::raw::c_void;
 pub type GLbyte = std::os::raw::c_char;
 pub type GLshort = std::os::raw::c_short;
 pub type GLint = std::os::raw::c_int;
+pub type GLint64 = std::os::raw::c_longlong;
 pub type GLubyte = std::os::raw::c_uchar;
 pub type GLushort = std::os::raw::c_ushort;
 pub type GLuint = std::os::raw::c_uint;
+pub type GLuint64 = std::os::raw::c_ulonglong;
 pub type GLsizei = std::os::raw::c_int;
 pub type GLfloat = std::os::raw::c_float;
 pub type GLclampf = std::os::raw::c_float;
@@ -99,10 +102,33 @@ pub const DST_COLOR: GLenum = 0x0306;
 pub const ONE_MINUS_DST_COLOR: GLenum = 0x0307;
 pub const SRC_ALPHA_SATURATE: GLenum = 0x0308;
 
+pub const VENDOR: GLenum = 0x1F00;
+pub const RENDERER: GLenum = 0x1F01;
+pub const VERSION: GLenum = 0x1F02;
+pub const EXTENSIONS: GLenum = 0x1F03;
+pub const MAJOR_VERSION: GLenum = 0x821B;
+pub const MINOR_VERSION: GLenum = 0x821C;
+pub const NUM_EXTENSIONS: GLenum = 0x821D;
+
 pub const ARRAY_BUFFER: GLenum = 0x8892;
 pub const STATIC_DRAW: GLenum = 0x88E4;
 pub const FRAGMENT_SHADER: GLenum = 0x8B30;
 pub const VERTEX_SHADER: GLenum = 0x8B31;
+pub const SHADER_TYPE: GLenum = 0x8B4F;
+
+pub const DELETE_STATUS: GLenum = 0x8B80;
+pub const COMPILE_STATUS: GLenum = 0x8B81;
+pub const LINK_STATUS: GLenum = 0x8B82;
+pub const VALIDATE_STATUS: GLenum = 0x8B83;
+pub const INFO_LOG_LENGTH: GLenum = 0x8B84;
+pub const ATTACHED_SHADERS: GLenum = 0x8B85;
+pub const ACTIVE_UNIFORMS: GLenum = 0x8B86;
+pub const ACTIVE_UNIFORM_MAX_LENGTH: GLenum = 0x8B87;
+pub const SHADER_SOURCE_LENGTH: GLenum = 0x8B88;
+pub const ACTIVE_ATTRIBUTES: GLenum = 0x8B89;
+pub const ACTIVE_ATTRIBUTE_MAX_LENGTH: GLenum = 0x8B8A;
+pub const SHADING_LANGUAGE_VERSION: GLenum = 0x8B8C;
+pub const CURRENT_PROGRAM: GLenum = 0x8B8D;
 
 pub const FRAMEBUFFER: GLenum = 0x8D40;
 pub const DRAW_FRAMEBUFFER: GLenum = 0x8CA9;
@@ -111,6 +137,19 @@ pub const FRAMEBUFFER_COMPLETE: GLenum = 0x8CD5;
 
 pub const COLOR_ATTACHMENT: GLenum = 0x8CE0;
 pub const DEPTH_ATTACHMENT: GLenum = 0x8D00;
+
+pub type FnGetBooleanv = unsafe extern "system" fn(GLenum, *mut GLboolean);
+pub type FnGetIntegerv = unsafe extern "system" fn(GLenum, *mut GLint);
+pub type FnGetInteger64v = unsafe extern "system" fn(GLenum, *mut GLint64);
+pub type FnGetDoublev = unsafe extern "system" fn(GLenum, *mut GLdouble);
+pub type FnGetFloatv = unsafe extern "system" fn(GLenum, *mut GLfloat);
+pub type FnGetBooleani_v = unsafe extern "system" fn(GLenum, GLuint, *mut GLboolean);
+pub type FnGetIntegeri_v = unsafe extern "system" fn(GLenum, GLuint, *mut GLint);
+pub type FnGetInteger64i_v = unsafe extern "system" fn(GLenum, GLuint, *mut GLint64);
+pub type FnGetFloati_v = unsafe extern "system" fn(GLenum, GLuint, *mut GLfloat);
+pub type FnGetDoublei_v = unsafe extern "system" fn(GLenum, GLuint, *mut GLdouble);
+pub type FnGetString = unsafe extern "system" fn(GLenum) -> *const GLubyte;
+pub type FnGetStringi = unsafe extern "system" fn(GLenum, GLint) -> *const GLubyte;
 
 pub type FnViewport = unsafe fn(GLint, GLint, GLsizei, GLsizei);
 pub type FnClearColor = unsafe fn(GLfloat, GLfloat, GLfloat, GLfloat);
@@ -148,6 +187,8 @@ pub type FnAttachShader = unsafe extern "system" fn(GLuint, GLuint);
 pub type FnDetachShader = unsafe extern "system" fn(GLuint, GLuint);
 pub type FnShaderSource =
     unsafe extern "system" fn(GLuint, GLsizei, *const *const GLchar, *const GLint);
+pub type FnGetShaderiv = unsafe extern "system" fn(GLuint, GLenum, *mut GLint);
+pub type FnGetShaderInfoLog = unsafe extern "system" fn(GLuint, GLsizei, *mut GLsizei, *mut GLchar);
 
 pub type FnGenBuffers = unsafe extern "system" fn(GLsizei, *mut GLuint);
 pub type FnBindBuffer = unsafe extern "system" fn(GLenum, GLuint);
@@ -193,6 +234,19 @@ pub type FnUniformMatrix3fv = unsafe extern "system" fn(GLint, GLsizei, GLboolea
 pub type FnUniformMatrix4fv = unsafe extern "system" fn(GLint, GLsizei, GLboolean, *const GLfloat);
 
 pub struct OpenGLFunctions {
+    fnGetBooleanv: FnGetBooleanv,
+    fnGetIntegerv: FnGetIntegerv,
+    fnGetInteger64v: FnGetInteger64v,
+    fnGetDoublev: FnGetDoublev,
+    fnGetFloatv: FnGetFloatv,
+    fnGetBooleani_v: FnGetBooleani_v,
+    fnGetIntegeri_v: FnGetIntegeri_v,
+    fnGetInteger64i_v: FnGetInteger64i_v,
+    fnGetFloati_v: FnGetFloati_v,
+    fnGetDoublei_v: FnGetDoublei_v,
+    fnGetString: FnGetString,
+    fnGetStringi: FnGetStringi,
+
     fnViewport: FnViewport,
     fnClearColor: FnClearColor,
     fnClear: FnClear,
@@ -226,6 +280,8 @@ pub struct OpenGLFunctions {
     fnAttachShader: FnAttachShader,
     fnDetachShader: FnDetachShader,
     fnShaderSource: FnShaderSource,
+    fnGetShaderiv: FnGetShaderiv,
+    fnGetShaderInfoLog: FnGetShaderInfoLog,
 
     fnGenBuffers: FnGenBuffers,
     fnBindBuffer: FnBindBuffer,
@@ -320,6 +376,19 @@ impl OpenGLFunctions {
         F: Fn(&'static str) -> Option<FnOpenGL>,
     {
         Ok(Self {
+            fnGetBooleanv: load_gl_fn!(load_fn, "glGetBooleanv\0" => FnGetBooleanv)?,
+            fnGetIntegerv: load_gl_fn!(load_fn, "glGetIntegerv\0" => FnGetIntegerv)?,
+            fnGetInteger64v: load_gl_fn!(load_fn, "glGetInteger64v\0" => FnGetInteger64v)?,
+            fnGetDoublev: load_gl_fn!(load_fn, "glGetDoublev\0" => FnGetDoublev)?,
+            fnGetFloatv: load_gl_fn!(load_fn, "glGetFloatv\0" => FnGetFloatv)?,
+            fnGetBooleani_v: load_gl_fn!(load_fn, "glGetBooleani_v\0" => FnGetBooleani_v)?,
+            fnGetIntegeri_v: load_gl_fn!(load_fn, "glGetIntegeri_v\0" => FnGetIntegeri_v)?,
+            fnGetInteger64i_v: load_gl_fn!(load_fn, "glGetInteger64i_v\0" => FnGetInteger64i_v)?,
+            fnGetFloati_v: load_gl_fn!(load_fn, "glGetFloati_v\0" => FnGetFloati_v)?,
+            fnGetDoublei_v: load_gl_fn!(load_fn, "glGetDoublei_v\0" => FnGetDoublei_v)?,
+            fnGetString: load_gl_fn!(load_fn, "glGetString\0" => FnGetString)?,
+            fnGetStringi: load_gl_fn!(load_fn, "glGetStringi\0" => FnGetStringi)?,
+
             fnViewport: load_gl_fn!(load_fn, "glViewport\0" => FnViewport)?,
             fnClearColor: load_gl_fn!(load_fn, "glClearColor\0" => FnClearColor)?,
             fnClear: load_gl_fn!(load_fn, "glClear\0" => FnClear)?,
@@ -353,6 +422,8 @@ impl OpenGLFunctions {
             fnAttachShader: load_gl_fn!(load_fn, "glAttachShader\0" => FnAttachShader)?,
             fnDetachShader: load_gl_fn!(load_fn, "glDetachShader\0" => FnDetachShader)?,
             fnShaderSource: load_gl_fn!(load_fn, "glShaderSource\0" => FnShaderSource)?,
+            fnGetShaderiv: load_gl_fn!(load_fn, "glGetShaderiv\0" => FnGetShaderiv)?,
+            fnGetShaderInfoLog: load_gl_fn!(load_fn, "glGetShaderInfoLog\0" => FnGetShaderInfoLog)?,
 
             fnGenBuffers: load_gl_fn!(load_fn, "glGenBuffers\0" => FnGenBuffers)?,
             fnBindBuffer: load_gl_fn!(load_fn, "glBindBuffer\0" => FnBindBuffer)?,
@@ -398,6 +469,19 @@ impl OpenGLFunctions {
         })
     }
 
+    impl_gl_fn!(fnGetBooleanv, GetBooleanv(pname: GLenum, data: *mut GLboolean));
+    impl_gl_fn!(fnGetIntegerv, GetIntegerv(pname: GLenum, data: *mut GLint));
+    impl_gl_fn!(fnGetInteger64v, GetInteger64v(pname: GLenum, data: *mut GLint64));
+    impl_gl_fn!(fnGetDoublev, GetDoublev(pname: GLenum, data: *mut GLdouble));
+    impl_gl_fn!(fnGetFloatv, GetFloatv(pname: GLenum, data: *mut GLfloat));
+    impl_gl_fn!(fnGetBooleani_v, GetBooleani_v(pname: GLenum, index: GLuint, data: *mut GLboolean));
+    impl_gl_fn!(fnGetIntegeri_v, GetIntegeri_v(pname: GLenum, index: GLuint, data: *mut GLint));
+    impl_gl_fn!(fnGetInteger64i_v, GetInteger64i_v(pname: GLenum, index: GLuint, data: *mut GLint64));
+    impl_gl_fn!(fnGetFloati_v, GetFloati_v(pname: GLenum, index: GLuint, data: *mut GLfloat));
+    impl_gl_fn!(fnGetDoublei_v, GetDoublei_v(pname: GLenum, index: GLuint, data: *mut GLdouble));
+    impl_gl_fn!(fnGetString, GetString(name: GLenum) -> *const GLubyte);
+    impl_gl_fn!(fnGetStringi, GetStringi(name: GLenum, index: GLint) -> *const GLubyte);
+
     impl_gl_fn!(fnViewport, Viewport(x: GLint, y: GLint, width: GLsizei, height: GLsizei));
     impl_gl_fn!(fnClearColor, ClearColor(red: GLfloat, green: GLfloat, blue: GLfloat, alpha: GLfloat));
     impl_gl_fn!(fnClear, Clear(mask: GLbitfield));
@@ -431,6 +515,8 @@ impl OpenGLFunctions {
     impl_gl_fn!(fnAttachShader, AttachShader(program: GLuint, shader: GLuint));
     impl_gl_fn!(fnDetachShader, DetachShader(program: GLuint, shader: GLuint));
     impl_gl_fn!(fnShaderSource, ShaderSource(shader: GLuint, count: GLsizei, string: *const *const GLchar, length: *const GLint));
+    impl_gl_fn!(fnGetShaderiv, GetShaderiv(shader: GLuint, pname: GLenum, params: *mut GLint));
+    impl_gl_fn!(fnGetShaderInfoLog, GetShaderInfoLog(shader: GLuint, buf_size: GLsizei, length: *mut GLsizei, info_log: *mut GLchar));
 
     impl_gl_fn!(fnGenBuffers, GenBuffers(n: GLsizei, buffers: *mut GLuint));
     impl_gl_fn!(fnBindBuffer, BindBuffer(target: GLenum, buffer: GLuint));
@@ -478,8 +564,8 @@ impl OpenGLFunctions {
 
 mod tests {
 
-	#[test]
-	fn test_load_gl_fn() {
-		assert_eq!(1, 1);
-	}
+    #[test]
+    fn test_load_gl_fn() {
+        assert_eq!(1, 1);
+    }
 }
