@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
+#![cfg_attr(rustfmt, rustfmt_skip)]
 
 pub type GLenum = std::os::raw::c_uint;
 pub type GLboolean = std::os::raw::c_uchar;
@@ -17,7 +18,7 @@ pub type GLsizei = std::os::raw::c_int;
 pub type GLfloat = std::os::raw::c_float;
 pub type GLclampf = std::os::raw::c_float;
 pub type GLdouble = std::os::raw::c_double;
-pub type GLchar = std::os::raw::c_uchar;
+pub type GLchar = std::os::raw::c_char;
 
 pub const FALSE: GLboolean = 0;
 pub const TRUE: GLboolean = 1;
@@ -162,10 +163,8 @@ pub type FnPointSize = unsafe fn(GLfloat);
 pub type FnLineWidth = unsafe fn(GLfloat);
 pub type FnGenTextures = unsafe fn(GLsizei, *mut GLuint);
 pub type FnBindTexture = unsafe fn(GLenum, GLuint);
-pub type FnTexImage1D =
-    unsafe fn(GLenum, GLint, GLint, GLsizei, GLint, GLenum, GLenum, *const GLvoid);
-pub type FnTexImage2D =
-    unsafe fn(GLenum, GLint, GLint, GLsizei, GLsizei, GLint, GLenum, GLenum, *const GLvoid);
+pub type FnTexImage1D = unsafe fn(GLenum, GLint, GLint, GLsizei, GLint, GLenum, GLenum, *const GLvoid);
+pub type FnTexImage2D = unsafe fn(GLenum, GLint, GLint, GLsizei, GLsizei, GLint, GLenum, GLenum, *const GLvoid);
 pub type FnTexParameterf = unsafe fn(GLenum, GLenum, GLfloat);
 pub type FnTexParameterfv = unsafe fn(GLenum, GLenum, *const GLfloat);
 pub type FnTexParameteri = unsafe fn(GLenum, GLenum, GLint);
@@ -185,10 +184,10 @@ pub type FnDeleteShader = unsafe extern "system" fn(GLuint);
 pub type FnCompileShader = unsafe extern "system" fn(GLuint);
 pub type FnAttachShader = unsafe extern "system" fn(GLuint, GLuint);
 pub type FnDetachShader = unsafe extern "system" fn(GLuint, GLuint);
-pub type FnShaderSource =
-    unsafe extern "system" fn(GLuint, GLsizei, *const *const GLchar, *const GLint);
+pub type FnShaderSource = unsafe extern "system" fn(GLuint, GLsizei, *const *const GLchar, *const GLint);
 pub type FnGetShaderiv = unsafe extern "system" fn(GLuint, GLenum, *mut GLint);
 pub type FnGetShaderInfoLog = unsafe extern "system" fn(GLuint, GLsizei, *mut GLsizei, *mut GLchar);
+pub type FnGetProgramInfoLog = unsafe extern "system" fn(GLuint, GLsizei, *mut GLsizei, *mut GLchar);
 
 pub type FnGenBuffers = unsafe extern "system" fn(GLsizei, *mut GLuint);
 pub type FnBindBuffer = unsafe extern "system" fn(GLenum, GLuint);
@@ -203,8 +202,7 @@ pub type FnGenVertexArrays = unsafe extern "system" fn(GLsizei, *mut GLuint);
 pub type FnDeleteVertexArrays = unsafe extern "system" fn(GLsizei, *const GLuint);
 pub type FnBindVertexArray = unsafe extern "system" fn(GLuint);
 pub type FnGetAttribLocation = unsafe extern "system" fn(GLuint, *const GLchar) -> GLint;
-pub type FnVertexAttribPointer =
-    unsafe extern "system" fn(GLuint, GLint, GLenum, GLboolean, GLsizei, *const GLvoid);
+pub type FnVertexAttribPointer = unsafe extern "system" fn(GLuint, GLint, GLenum, GLboolean, GLsizei, *const GLvoid);
 
 pub type FnBindFramebuffer = unsafe extern "system" fn(GLenum, GLuint);
 pub type FnGenFramebuffers = unsafe extern "system" fn(GLsizei, *mut GLuint);
@@ -282,6 +280,7 @@ pub struct OpenGLFunctions {
     fnShaderSource: FnShaderSource,
     fnGetShaderiv: FnGetShaderiv,
     fnGetShaderInfoLog: FnGetShaderInfoLog,
+    fnGetProgramInfoLog: FnGetProgramInfoLog,
 
     fnGenBuffers: FnGenBuffers,
     fnBindBuffer: FnBindBuffer,
@@ -424,6 +423,7 @@ impl OpenGLFunctions {
             fnShaderSource: load_gl_fn!(load_fn, "glShaderSource\0" => FnShaderSource)?,
             fnGetShaderiv: load_gl_fn!(load_fn, "glGetShaderiv\0" => FnGetShaderiv)?,
             fnGetShaderInfoLog: load_gl_fn!(load_fn, "glGetShaderInfoLog\0" => FnGetShaderInfoLog)?,
+            fnGetProgramInfoLog: load_gl_fn!(load_fn, "glGetProgramInfoLog\0" => FnGetProgramInfoLog)?,
 
             fnGenBuffers: load_gl_fn!(load_fn, "glGenBuffers\0" => FnGenBuffers)?,
             fnBindBuffer: load_gl_fn!(load_fn, "glBindBuffer\0" => FnBindBuffer)?,
@@ -517,6 +517,7 @@ impl OpenGLFunctions {
     impl_gl_fn!(fnShaderSource, ShaderSource(shader: GLuint, count: GLsizei, string: *const *const GLchar, length: *const GLint));
     impl_gl_fn!(fnGetShaderiv, GetShaderiv(shader: GLuint, pname: GLenum, params: *mut GLint));
     impl_gl_fn!(fnGetShaderInfoLog, GetShaderInfoLog(shader: GLuint, buf_size: GLsizei, length: *mut GLsizei, info_log: *mut GLchar));
+    impl_gl_fn!(fnGetProgramInfoLog, GetProgramInfoLog(program: GLuint, buf_size: GLsizei, length: *mut GLsizei, info_log: *mut GLchar));
 
     impl_gl_fn!(fnGenBuffers, GenBuffers(n: GLsizei, buffers: *mut GLuint));
     impl_gl_fn!(fnBindBuffer, BindBuffer(target: GLenum, buffer: GLuint));
@@ -560,12 +561,4 @@ impl OpenGLFunctions {
     impl_gl_fn!(fnUniformMatrix2fv, UniformMatrix2fv(location: GLint, count: GLsizei, transpose: GLboolean, value: *const GLfloat));
     impl_gl_fn!(fnUniformMatrix3fv, UniformMatrix3fv(location: GLint, count: GLsizei, transpose: GLboolean, value: *const GLfloat));
     impl_gl_fn!(fnUniformMatrix4fv, UniformMatrix4fv(location: GLint, count: GLsizei, transpose: GLboolean, value: *const GLfloat));
-}
-
-mod tests {
-
-    #[test]
-    fn test_load_gl_fn() {
-        assert_eq!(1, 1);
-    }
 }
