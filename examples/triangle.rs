@@ -1,4 +1,23 @@
 use minigl::opengl as gl;
+use std::ffi::CString;
+
+#[derive(Debug, PartialEq)]
+pub enum Error {
+    InvalidCString,
+    ShaderCompileError { name: String, log: String },
+    ShaderLinkError { name: String, log: String },
+}
+
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        let err = format!("{:?}", self);
+        f.write_str(&err)
+    }
+}
+
+impl std::error::Error for Error {}
+
+pub type Result<T> = std::result::Result<T, Error>;
 
 const VS_COLOR: &str = r#"
 #version 300 es
@@ -60,8 +79,11 @@ impl Triangle {
 
         let color_vao = create_color_vao(&gl);
         let texture_vao = create_texture_vao(&gl);
-        let color_program = create_program(&gl, "color", VS_COLOR, FS_COLOR);
-        let texture_program = create_program(&gl, "texture", VS_TEXTURE, FS_TEXTURE);
+        let color_program = create_program(&gl, "color", VS_COLOR, FS_COLOR)
+            .expect("Failed to create color program");
+        let texture_program = create_program(&gl, "texture", VS_TEXTURE, FS_TEXTURE)
+            .expect("Failed to create texture program");
+
         let (fbo, texture) = create_framebuffer(&gl);
 
         Self {
@@ -133,17 +155,25 @@ fn print_opengl_info(gl: &gl::OpenGLFunctions) {
     }
 }
 
-fn create_shader(gl: &gl::OpenGLFunctions, shader_type: gl::GLenum, name: &str, source: &str) -> gl::GLuint {
+pub fn create_shader(
+    gl: &gl::OpenGLFunctions,
+    shader_type: gl::GLenum,
+    name: &str,
+    source: &str,
+) -> Result<gl::GLuint> {
     unsafe {
-        let source = source.to_string() + "\0";
+        let Ok(csource) = CString::new(source) else {
+            return Err(Error::InvalidCString);
+        };
         let shader = gl.CreateShader(shader_type);
-        gl.ShaderSource(shader, 1, &source.as_ptr(), std::ptr::null());
+        let csource_ptr = csource.as_ptr();
+        gl.ShaderSource(shader, 1, &csource_ptr, std::ptr::null());
         gl.CompileShader(shader);
 
-        let mut is_compiled: gl::GLint = 0;
+        let mut is_compiled = 0;
         gl.GetShaderiv(shader, gl::COMPILE_STATUS, &mut is_compiled);
         if is_compiled == 0 {
-            let mut log_length: gl::GLint = 0;
+            let mut log_length = 0;
             gl.GetShaderiv(shader, gl::INFO_LOG_LENGTH, &mut log_length);
             let mut log = vec![0; log_length as usize];
             gl.GetShaderInfoLog(
@@ -153,17 +183,26 @@ fn create_shader(gl: &gl::OpenGLFunctions, shader_type: gl::GLenum, name: &str, 
                 log.as_mut_ptr() as *mut _,
             );
             let log_str = String::from_utf8_lossy(&log);
-            panic!("{name}: Shader compilation failed: {log_str}");
+            gl.DeleteShader(shader);
+            return Err(Error::ShaderCompileError {
+                name: name.to_string(),
+                log: log_str.to_string(),
+            });
         }
 
-        shader
+        Ok(shader)
     }
 }
 
-fn create_program(gl: &gl::OpenGLFunctions, name: &str, vs: &str, fs: &str) -> gl::GLuint {
+pub fn create_program(
+    gl: &gl::OpenGLFunctions,
+    name: &str,
+    vs: &str,
+    fs: &str,
+) -> Result<gl::GLuint> {
     unsafe {
-        let vs = create_shader(gl, gl::VERTEX_SHADER, format!("{name}/vertex").as_str(), vs);
-        let fs = create_shader(gl, gl::FRAGMENT_SHADER, format!("{name}/fragment").as_str(), fs);
+        let vs = create_shader(gl, gl::VERTEX_SHADER, format!("{name}/vertex").as_str(), vs)?;
+        let fs = create_shader(gl, gl::FRAGMENT_SHADER, format!("{name}/frag").as_str(), fs)?;
 
         let program = gl.CreateProgram();
         gl.AttachShader(program, vs);
@@ -171,7 +210,27 @@ fn create_program(gl: &gl::OpenGLFunctions, name: &str, vs: &str, fs: &str) -> g
         gl.LinkProgram(program);
         gl.DeleteShader(vs);
         gl.DeleteShader(fs);
-        program
+
+        let mut is_linked = 0;
+        gl.GetProgramiv(program, gl::LINK_STATUS, &mut is_linked);
+        if is_linked == 0 {
+            let mut log_length = 0;
+            gl.GetProgramiv(program, gl::INFO_LOG_LENGTH, &mut log_length);
+            let mut log = vec![0; log_length as usize];
+            gl.GetProgramInfoLog(
+                program,
+                log_length,
+                std::ptr::null_mut(),
+                log.as_mut_ptr() as *mut _,
+            );
+            let log_str = String::from_utf8_lossy(&log);
+            gl.DeleteProgram(program);
+            return Err(Error::ShaderLinkError {
+                name: name.to_string(),
+                log: log_str.to_string(),
+            });
+        }
+        Ok(program)
     }
 }
 
