@@ -48,6 +48,7 @@ pub const UNSIGNED_INT: GLenum = 0x1405;
 pub const FLOAT: GLenum = 0x1406;
 pub const DOUBLE: GLenum = 0x140A;
 
+pub const DEPTH_COMPONENT: GLenum = 0x1902;
 pub const RGB: GLenum = 0x1907;
 pub const RGBA: GLenum = 0x1908;
 
@@ -64,6 +65,10 @@ pub const RGB10_A2: GLenum = 0x8059;
 pub const RGBA12: GLenum = 0x805A;
 pub const RGBA16: GLenum = 0x805B;
 
+pub const DEPTH_COMPONENT16: GLenum = 0x81A5;
+pub const DEPTH_COMPONENT24: GLenum = 0x81A6;
+pub const DEPTH_COMPONENT32: GLenum = 0x81A7;
+
 pub const R16F: GLenum = 0x822D;
 pub const RG16F: GLenum = 0x822F;
 pub const RGB16F: GLenum = 0x881B;
@@ -72,6 +77,7 @@ pub const RGBA16F: GLenum = 0x881A;
 pub const BLEND: GLenum = 0x0BE2;
 pub const CULL_FACE: GLenum = 0x0B44;
 pub const DEPTH_TEST: GLenum = 0x0B71;
+pub const DEPTH_FUNC: GLenum = 0x0B74;
 pub const LINE_SMOOTH: GLenum = 0x0B20;
 pub const PROGRAM_POINT_SIZE: GLenum = 0x8642;
 
@@ -90,6 +96,7 @@ pub const TEXTURE_WRAP_T: GLenum = 0x2803;
 pub const CLAMP_TO_EDGE: GLenum = 0x812F;
 
 pub const TEXTURE0: GLenum = 0x84C0;
+pub const TEXTURE1: GLenum = 0x84C1;
 
 pub const ZERO: GLenum = 0;
 pub const ONE: GLenum = 1;
@@ -112,6 +119,8 @@ pub const MINOR_VERSION: GLenum = 0x821C;
 pub const NUM_EXTENSIONS: GLenum = 0x821D;
 
 pub const ARRAY_BUFFER: GLenum = 0x8892;
+pub const ELEMENT_ARRAY_BUFFER: GLenum = 0x8893;
+
 pub const STATIC_DRAW: GLenum = 0x88E4;
 pub const FRAGMENT_SHADER: GLenum = 0x8B30;
 pub const VERTEX_SHADER: GLenum = 0x8B31;
@@ -161,8 +170,10 @@ pub type FnAlphaFunc = unsafe fn(GLenum, GLclampf);
 pub type FnBlendFunc = unsafe fn(GLenum, GLenum);
 pub type FnPointSize = unsafe fn(GLfloat);
 pub type FnLineWidth = unsafe fn(GLfloat);
+
 pub type FnGenTextures = unsafe fn(GLsizei, *mut GLuint);
 pub type FnBindTexture = unsafe fn(GLenum, GLuint);
+pub type FnDeleteTextures = unsafe fn(GLsizei, *const GLuint);
 pub type FnTexImage1D = unsafe fn(GLenum, GLint, GLint, GLsizei, GLint, GLenum, GLenum, *const GLvoid);
 pub type FnTexImage2D = unsafe fn(GLenum, GLint, GLint, GLsizei, GLsizei, GLint, GLenum, GLenum, *const GLvoid);
 pub type FnTexParameterf = unsafe fn(GLenum, GLenum, GLfloat);
@@ -195,6 +206,7 @@ pub type FnBufferData = unsafe extern "system" fn(GLenum, usize, *const GLvoid, 
 pub type FnDeleteBuffers = unsafe extern "system" fn(GLsizei, *const GLuint);
 pub type FnDrawBuffers = unsafe extern "system" fn(GLsizei, *const GLenum);
 pub type FnDrawArrays = unsafe extern "system" fn(GLenum, GLint, GLsizei);
+pub type FnDrawElements = unsafe extern "system" fn(GLenum, GLsizei, GLenum, *const GLvoid);
 
 pub type FnEnableVertexAttribArray = unsafe extern "system" fn(GLuint);
 pub type FnDisableVertexAttribArray = unsafe extern "system" fn(GLuint);
@@ -254,8 +266,10 @@ pub struct OpenGLFunctions {
     fnBlendFunc: FnBlendFunc,
     fnPointSize: FnPointSize,
     fnLineWidth: FnLineWidth,
+
     fnGenTextures: FnGenTextures,
     fnBindTexture: FnBindTexture,
+    fnDeleteTextures: FnDeleteTextures,
     fnTexImage1D: FnTexImage1D,
     fnTexImage2D: FnTexImage2D,
     fnTexParameterf: FnTexParameterf,
@@ -288,6 +302,7 @@ pub struct OpenGLFunctions {
     fnDeleteBuffers: FnDeleteBuffers,
     fnDrawBuffers: FnDrawBuffers,
     fnDrawArrays: FnDrawArrays,
+    fnDrawElements: FnDrawElements,
 
     fnEnableVertexAttribArray: FnEnableVertexAttribArray,
     fnDisableVertexAttribArray: FnDisableVertexAttribArray,
@@ -397,8 +412,10 @@ impl OpenGLFunctions {
             fnBlendFunc: load_gl_fn!(load_fn, "glBlendFunc\0" => FnBlendFunc)?,
             fnPointSize: load_gl_fn!(load_fn, "glPointSize\0" => FnPointSize)?,
             fnLineWidth: load_gl_fn!(load_fn, "glLineWidth\0" => FnLineWidth)?,
+            
             fnGenTextures: load_gl_fn!(load_fn, "glGenTextures\0" => FnGenTextures)?,
             fnBindTexture: load_gl_fn!(load_fn, "glBindTexture\0" => FnBindTexture)?,
+            fnDeleteTextures: load_gl_fn!(load_fn, "glDeleteTextures\0" => FnDeleteTextures)?,
             fnTexImage1D: load_gl_fn!(load_fn, "glTexImage1D\0" => FnTexImage1D)?,
             fnTexImage2D: load_gl_fn!(load_fn, "glTexImage2D\0" => FnTexImage2D)?,
             fnTexParameterf: load_gl_fn!(load_fn, "glTexParameterf\0" => FnTexParameterf)?,
@@ -431,6 +448,7 @@ impl OpenGLFunctions {
             fnDeleteBuffers: load_gl_fn!(load_fn, "glDeleteBuffers\0" => FnDeleteBuffers)?,
             fnDrawBuffers: load_gl_fn!(load_fn, "glDrawBuffers\0" => FnDrawBuffers)?,
             fnDrawArrays: load_gl_fn!(load_fn, "glDrawArrays\0" => FnDrawArrays)?,
+            fnDrawElements: load_gl_fn!(load_fn, "glDrawElements\0" => FnDrawElements)?,
 
             fnEnableVertexAttribArray: load_gl_fn!(load_fn, "glEnableVertexAttribArray\0" => FnEnableVertexAttribArray)?,
             fnDisableVertexAttribArray: load_gl_fn!(load_fn, "glDisableVertexAttribArray\0" => FnDisableVertexAttribArray)?,
@@ -491,8 +509,10 @@ impl OpenGLFunctions {
     impl_gl_fn!(fnBlendFunc, BlendFunc(src: GLenum, dst: GLenum));
     impl_gl_fn!(fnPointSize, PointSize(size: GLfloat));
     impl_gl_fn!(fnLineWidth, LineWidth(width: GLfloat));
+
     impl_gl_fn!(fnGenTextures, GenTextures(n: GLsizei, textures: *mut GLuint));
     impl_gl_fn!(fnBindTexture, BindTexture(target: GLenum, texture: GLuint));
+    impl_gl_fn!(fnDeleteTextures, DeleteTextures(n: GLsizei, textures: *const GLuint));
     impl_gl_fn!(fnTexImage1D, TexImage1D(target: GLenum, level: GLint, internal: GLint, width: GLsizei, border: GLint, format: GLenum, r#type: GLenum, pixels: *const GLvoid));
     impl_gl_fn!(fnTexImage2D, TexImage2D(target: GLenum, level: GLint, internal: GLint, width: GLsizei, height: GLsizei, border: GLint, format: GLenum, r#type: GLenum, pixels: *const GLvoid));
     impl_gl_fn!(fnTexParameterf, TexParameterf(target: GLenum, pname: GLenum, param: GLfloat));
@@ -526,6 +546,7 @@ impl OpenGLFunctions {
 
     impl_gl_fn!(fnDrawBuffers, DrawBuffers(n: GLsizei, bufs: *const GLenum));
     impl_gl_fn!(fnDrawArrays, DrawArrays(mode: GLenum, first: GLint, count: GLsizei));
+    impl_gl_fn!(fnDrawElements, DrawElements(mode: GLenum, count: GLsizei, type_: GLenum, indices: *const GLvoid));
 
     impl_gl_fn!(fnEnableVertexAttribArray, EnableVertexAttribArray(index: GLuint));
     impl_gl_fn!(fnDisableVertexAttribArray, DisableVertexAttribArray(index: GLuint));
