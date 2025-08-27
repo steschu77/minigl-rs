@@ -48,6 +48,7 @@ pub const UNSIGNED_INT: GLenum = 0x1405;
 pub const FLOAT: GLenum = 0x1406;
 pub const DOUBLE: GLenum = 0x140A;
 
+pub const DEPTH_COMPONENT: GLenum = 0x1902;
 pub const RGB: GLenum = 0x1907;
 pub const RGBA: GLenum = 0x1908;
 
@@ -64,6 +65,10 @@ pub const RGB10_A2: GLenum = 0x8059;
 pub const RGBA12: GLenum = 0x805A;
 pub const RGBA16: GLenum = 0x805B;
 
+pub const DEPTH_COMPONENT16: GLenum = 0x81A5;
+pub const DEPTH_COMPONENT24: GLenum = 0x81A6;
+pub const DEPTH_COMPONENT32: GLenum = 0x81A7;
+
 pub const R16F: GLenum = 0x822D;
 pub const RG16F: GLenum = 0x822F;
 pub const RGB16F: GLenum = 0x881B;
@@ -72,6 +77,7 @@ pub const RGBA16F: GLenum = 0x881A;
 pub const BLEND: GLenum = 0x0BE2;
 pub const CULL_FACE: GLenum = 0x0B44;
 pub const DEPTH_TEST: GLenum = 0x0B71;
+pub const DEPTH_FUNC: GLenum = 0x0B74;
 pub const LINE_SMOOTH: GLenum = 0x0B20;
 pub const PROGRAM_POINT_SIZE: GLenum = 0x8642;
 
@@ -90,6 +96,7 @@ pub const TEXTURE_WRAP_T: GLenum = 0x2803;
 pub const CLAMP_TO_EDGE: GLenum = 0x812F;
 
 pub const TEXTURE0: GLenum = 0x84C0;
+pub const TEXTURE1: GLenum = 0x84C1;
 
 pub const ZERO: GLenum = 0;
 pub const ONE: GLenum = 1;
