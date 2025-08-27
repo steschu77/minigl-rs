@@ -112,6 +112,8 @@ pub const MINOR_VERSION: GLenum = 0x821C;
 pub const NUM_EXTENSIONS: GLenum = 0x821D;
 
 pub const ARRAY_BUFFER: GLenum = 0x8892;
+pub const ELEMENT_ARRAY_BUFFER: GLenum = 0x8893;
+
 pub const STATIC_DRAW: GLenum = 0x88E4;
 pub const FRAGMENT_SHADER: GLenum = 0x8B30;
 pub const VERTEX_SHADER: GLenum = 0x8B31;
@@ -197,6 +199,7 @@ pub type FnBufferData = unsafe extern "system" fn(GLenum, usize, *const GLvoid, 
 pub type FnDeleteBuffers = unsafe extern "system" fn(GLsizei, *const GLuint);
 pub type FnDrawBuffers = unsafe extern "system" fn(GLsizei, *const GLenum);
 pub type FnDrawArrays = unsafe extern "system" fn(GLenum, GLint, GLsizei);
+pub type FnDrawElements = unsafe extern "system" fn(GLenum, GLsizei, GLenum, *const GLvoid);
 
 pub type FnEnableVertexAttribArray = unsafe extern "system" fn(GLuint);
 pub type FnDisableVertexAttribArray = unsafe extern "system" fn(GLuint);
@@ -292,6 +295,7 @@ pub struct OpenGLFunctions {
     fnDeleteBuffers: FnDeleteBuffers,
     fnDrawBuffers: FnDrawBuffers,
     fnDrawArrays: FnDrawArrays,
+    fnDrawElements: FnDrawElements,
 
     fnEnableVertexAttribArray: FnEnableVertexAttribArray,
     fnDisableVertexAttribArray: FnDisableVertexAttribArray,
@@ -437,6 +441,7 @@ impl OpenGLFunctions {
             fnDeleteBuffers: load_gl_fn!(load_fn, "glDeleteBuffers\0" => FnDeleteBuffers)?,
             fnDrawBuffers: load_gl_fn!(load_fn, "glDrawBuffers\0" => FnDrawBuffers)?,
             fnDrawArrays: load_gl_fn!(load_fn, "glDrawArrays\0" => FnDrawArrays)?,
+            fnDrawElements: load_gl_fn!(load_fn, "glDrawElements\0" => FnDrawElements)?,
 
             fnEnableVertexAttribArray: load_gl_fn!(load_fn, "glEnableVertexAttribArray\0" => FnEnableVertexAttribArray)?,
             fnDisableVertexAttribArray: load_gl_fn!(load_fn, "glDisableVertexAttribArray\0" => FnDisableVertexAttribArray)?,
@@ -534,6 +539,7 @@ impl OpenGLFunctions {
 
     impl_gl_fn!(fnDrawBuffers, DrawBuffers(n: GLsizei, bufs: *const GLenum));
     impl_gl_fn!(fnDrawArrays, DrawArrays(mode: GLenum, first: GLint, count: GLsizei));
+    impl_gl_fn!(fnDrawElements, DrawElements(mode: GLenum, count: GLsizei, type_: GLenum, indices: *const GLvoid));
 
     impl_gl_fn!(fnEnableVertexAttribArray, EnableVertexAttribArray(index: GLuint));
     impl_gl_fn!(fnDisableVertexAttribArray, DisableVertexAttribArray(index: GLuint));
