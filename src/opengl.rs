@@ -161,8 +161,10 @@ pub type FnAlphaFunc = unsafe fn(GLenum, GLclampf);
 pub type FnBlendFunc = unsafe fn(GLenum, GLenum);
 pub type FnPointSize = unsafe fn(GLfloat);
 pub type FnLineWidth = unsafe fn(GLfloat);
+
 pub type FnGenTextures = unsafe fn(GLsizei, *mut GLuint);
 pub type FnBindTexture = unsafe fn(GLenum, GLuint);
+pub type FnDeleteTextures = unsafe fn(GLsizei, *const GLuint);
 pub type FnTexImage1D = unsafe fn(GLenum, GLint, GLint, GLsizei, GLint, GLenum, GLenum, *const GLvoid);
 pub type FnTexImage2D = unsafe fn(GLenum, GLint, GLint, GLsizei, GLsizei, GLint, GLenum, GLenum, *const GLvoid);
 pub type FnTexParameterf = unsafe fn(GLenum, GLenum, GLfloat);
@@ -254,8 +256,10 @@ pub struct OpenGLFunctions {
     fnBlendFunc: FnBlendFunc,
     fnPointSize: FnPointSize,
     fnLineWidth: FnLineWidth,
+
     fnGenTextures: FnGenTextures,
     fnBindTexture: FnBindTexture,
+    fnDeleteTextures: FnDeleteTextures,
     fnTexImage1D: FnTexImage1D,
     fnTexImage2D: FnTexImage2D,
     fnTexParameterf: FnTexParameterf,
@@ -397,8 +401,10 @@ impl OpenGLFunctions {
             fnBlendFunc: load_gl_fn!(load_fn, "glBlendFunc\0" => FnBlendFunc)?,
             fnPointSize: load_gl_fn!(load_fn, "glPointSize\0" => FnPointSize)?,
             fnLineWidth: load_gl_fn!(load_fn, "glLineWidth\0" => FnLineWidth)?,
+            
             fnGenTextures: load_gl_fn!(load_fn, "glGenTextures\0" => FnGenTextures)?,
             fnBindTexture: load_gl_fn!(load_fn, "glBindTexture\0" => FnBindTexture)?,
+            fnDeleteTextures: load_gl_fn!(load_fn, "glDeleteTextures\0" => FnDeleteTextures)?,
             fnTexImage1D: load_gl_fn!(load_fn, "glTexImage1D\0" => FnTexImage1D)?,
             fnTexImage2D: load_gl_fn!(load_fn, "glTexImage2D\0" => FnTexImage2D)?,
             fnTexParameterf: load_gl_fn!(load_fn, "glTexParameterf\0" => FnTexParameterf)?,
@@ -491,8 +497,10 @@ impl OpenGLFunctions {
     impl_gl_fn!(fnBlendFunc, BlendFunc(src: GLenum, dst: GLenum));
     impl_gl_fn!(fnPointSize, PointSize(size: GLfloat));
     impl_gl_fn!(fnLineWidth, LineWidth(width: GLfloat));
+
     impl_gl_fn!(fnGenTextures, GenTextures(n: GLsizei, textures: *mut GLuint));
     impl_gl_fn!(fnBindTexture, BindTexture(target: GLenum, texture: GLuint));
+    impl_gl_fn!(fnDeleteTextures, DeleteTextures(n: GLsizei, textures: *const GLuint));
     impl_gl_fn!(fnTexImage1D, TexImage1D(target: GLenum, level: GLint, internal: GLint, width: GLsizei, border: GLint, format: GLenum, r#type: GLenum, pixels: *const GLvoid));
     impl_gl_fn!(fnTexImage2D, TexImage2D(target: GLenum, level: GLint, internal: GLint, width: GLsizei, height: GLsizei, border: GLint, format: GLenum, r#type: GLenum, pixels: *const GLvoid));
     impl_gl_fn!(fnTexParameterf, TexParameterf(target: GLenum, pname: GLenum, param: GLfloat));
